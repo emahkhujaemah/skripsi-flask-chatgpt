@@ -1,2 +1,2 @@
-flask
-tensorflow
+flask==2.2.2
+tensorflow==2.12.0
