@@ -1,4 +1,7 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
+import mysql.connector
+from mysql.connector import Error
+
 import tensorflow as tf
 import pickle
 import re
@@ -12,8 +15,42 @@ model_cnn = tf.keras.models.load_model('cnn_model.h5')
 with open('tokenizer.pickle', 'rb') as handle:
     tokenizer = pickle.load(handle)
 
+
 # Sentiment classes
 sentiment_classes = ['Negative', 'Neutral', 'Positive']
+
+
+def save_to_database(text, sentiment, confidence):
+    try:
+        conn = mysql.connector.connect(
+            host='127.0.0.1',
+            database='sentimen-chatgpt',
+            user='root',
+            password='emah1224'
+        )
+        if conn.is_connected():
+            cursor = conn.cursor()
+
+            # Create a table if it doesn't exist
+            cursor.execute('''CREATE TABLE IF NOT EXISTS sentiments 
+                              (id INT AUTO_INCREMENT PRIMARY KEY,
+                               text TEXT,
+                               sentiment TEXT,
+                               confidence FLOAT)''')
+
+            # Insert the data into the table
+            query = "INSERT INTO predictions (text, sentiment, confidence) VALUES (%s, %s, %s)"
+            values = (text, sentiment, confidence)
+            cursor.execute(query, values)
+
+            # Commit the changes and close the connection
+            conn.commit()
+            cursor.close()
+            conn.close()
+
+    except Error as e:
+        print('Error connecting to MySQL:', e)
+
 
 
 def preprocess_text(text):
@@ -37,12 +74,16 @@ def preprocess_text(text):
 
 
 @app.route('/')
-def hello_world():
-    return 'Analisis Sentimen ChatGPT'
+def index():
+    return 'Test Analisis Sentimen ChatGPT'
+    
+@app.route('/api')
+def api():
+    return 'Test Analisis Sentimen ChatGPT'
 
 
-@app.route('/predict-lstm', methods=['POST'])
-def predict_sentiment():
+@app.route('/api/predict-lstm', methods=['POST'])
+def lstm_model():
     text = request.json['text']
 
     # Preprocess text
@@ -58,11 +99,44 @@ def predict_sentiment():
     sentiment_index = tf.argmax(prediction).numpy()
     sentiment = sentiment_classes[sentiment_index]
 
+     # Perform prediction using the LSTM model
+    lstm_prediction = model_lstm.predict(encoded_text)[0]
+    lstm_sentiment_index = tf.argmax(lstm_prediction).numpy()
+    lstm_sentiment = sentiment_classes[lstm_sentiment_index]
+
+    # Save data to the database
+    save_to_database(text, lstm_sentiment, float(lstm_prediction[lstm_sentiment_index]))
+
     return jsonify({'text': text,
-                    'sentiment': sentiment,
-                    'confidence': float(prediction[sentiment_index])
+                    'sentiment': lstm_sentiment,
+                    'confidence': float(lstm_prediction[lstm_sentiment_index])
                     })
 
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+
+@app.route('/api/predict-cnn', methods=['POST'])
+def cnn_model():
+    data = request.json
+    text = data['text']
+
+    # Preprocess text
+    text = preprocess_text(text)
+
+    # Tokenize text
+    encoded_text = tokenizer.texts_to_sequences([text])
+    encoded_text = tf.keras.preprocessing.sequence.pad_sequences(
+        encoded_text, padding='post', maxlen=50)
+
+
+    # Perform prediction using the CNN model
+    cnn_prediction = model_cnn.predict(encoded_text)[0]
+    cnn_sentiment_index = tf.argmax(cnn_prediction).numpy()
+    cnn_sentiment = sentiment_classes[cnn_sentiment_index]
+
+    # Save data to the database
+    save_to_database(text, cnn_sentiment, float(cnn_prediction[cnn_sentiment_index]))
+
+    return jsonify({'text': text,
+                    'sentiment': cnn_sentiment,
+                    'confidence': float(cnn_prediction[cnn_sentiment_index])
+                    })
