@@ -32,14 +32,14 @@ def save_to_database(text, sentiment, confidence):
             cursor = conn.cursor()
 
             # Create a table if it doesn't exist
-            cursor.execute('''CREATE TABLE IF NOT EXISTS sentiments 
+            cursor.execute('''CREATE TABLE IF NOT EXISTS predict_result_data 
                               (id INT AUTO_INCREMENT PRIMARY KEY,
                                text TEXT,
                                sentiment TEXT,
                                confidence FLOAT)''')
 
             # Insert the data into the table
-            query = "INSERT INTO predictions (text, sentiment, confidence) VALUES (%s, %s, %s)"
+            query = "INSERT INTO predict_result_data (text, sentiment, confidence) VALUES (%s, %s, %s)"
             values = (text, sentiment, confidence)
             cursor.execute(query, values)
 
