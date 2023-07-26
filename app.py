@@ -19,6 +19,13 @@ with open('tokenizer.pickle', 'rb') as handle:
 # Sentiment classes
 sentiment_classes = ['Negative', 'Neutral', 'Positive']
 
+def is_data_exists(cursor, text, sentiment, confidence):
+    # Check if the data with the given text exists in the table
+    query = f"SELECT COUNT(*) FROM predict_result_data WHERE text = %s AND sentiment = %s AND confidence = %s"
+    cursor.execute(query, (text,sentiment, confidence))
+    result = cursor.fetchone()
+    return result[0] > 0
+
 
 def save_to_database(text, sentiment, confidence, model_name):
     try:
@@ -41,18 +48,23 @@ def save_to_database(text, sentiment, confidence, model_name):
                                sentiment TEXT,
                                confidence FLOAT)''')
 
-            # Insert the data into the table
-            query = f"INSERT IGNORE INTO {table_name} (text, sentiment, confidence) VALUES (%s, %s, %s)"
-            
-            query2 = f"INSERT IGNORE INTO predict_result_data (text, sentiment, confidence) VALUES (%s, %s, %s)"
-            
-            values = (text, sentiment, confidence)
-            
-            cursor.execute(query, values)
-            cursor.execute(query2, values)
+             # Check if the data with the same text already exists
+            if is_data_exists(cursor, text, sentiment, confidence):
+                print(f"Data with text : '{text}' and {sentiment}' and '{confidence}' already exists in the database. Skipping insertion.")
+            else:
+                # Insert the data into the table
+                query2 = f"INSERT IGNORE INTO predict_result_data (text, sentiment, confidence) VALUES (%s, %s, %s)"
+                values = (text, sentiment, confidence)
+                cursor.execute(query2, values)
+
+                query = f"INSERT IGNORE INTO {table_name} (text, sentiment, confidence) VALUES (%s, %s, %s)"
+                values = (text, sentiment, confidence)
+                cursor.execute(query, values)
+
+                conn.commit()
 
             # Commit the changes and close the connection
-            conn.commit()
+
             cursor.close()
             conn.close()
 
