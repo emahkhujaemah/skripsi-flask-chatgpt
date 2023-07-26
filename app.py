@@ -20,7 +20,7 @@ with open('tokenizer.pickle', 'rb') as handle:
 sentiment_classes = ['Negative', 'Neutral', 'Positive']
 
 
-def save_to_database(text, sentiment, confidence):
+def save_to_database(text, sentiment, confidence, model_name):
     try:
         conn = mysql.connector.connect(
             host='127.0.0.1',
@@ -31,17 +31,25 @@ def save_to_database(text, sentiment, confidence):
         if conn.is_connected():
             cursor = conn.cursor()
 
+            # Determine the table name based on the model_name
+            table_name = f'predict_result_{model_name.lower()}'
+
             # Create a table if it doesn't exist
-            cursor.execute('''CREATE TABLE IF NOT EXISTS predict_result_data 
+            cursor.execute(f'''CREATE TABLE IF NOT EXISTS {table_name}
                               (id INT AUTO_INCREMENT PRIMARY KEY,
                                text TEXT,
                                sentiment TEXT,
                                confidence FLOAT)''')
 
             # Insert the data into the table
-            query = "INSERT INTO predict_result_data (text, sentiment, confidence) VALUES (%s, %s, %s)"
+            query = f"INSERT IGNORE INTO {table_name} (text, sentiment, confidence) VALUES (%s, %s, %s)"
+            
+            query2 = f"INSERT IGNORE INTO predict_result_data (text, sentiment, confidence) VALUES (%s, %s, %s)"
+            
             values = (text, sentiment, confidence)
+            
             cursor.execute(query, values)
+            cursor.execute(query2, values)
 
             # Commit the changes and close the connection
             conn.commit()
@@ -94,24 +102,18 @@ def lstm_model():
     encoded_text = tf.keras.preprocessing.sequence.pad_sequences(
         encoded_text, padding='post', maxlen=50)
 
-    # Perform prediction
-    prediction = model_lstm.predict(encoded_text)[0]
-    sentiment_index = tf.argmax(prediction).numpy()
-    sentiment = sentiment_classes[sentiment_index]
-
-     # Perform prediction using the LSTM model
+    # Perform prediction using the LSTM model
     lstm_prediction = model_lstm.predict(encoded_text)[0]
     lstm_sentiment_index = tf.argmax(lstm_prediction).numpy()
     lstm_sentiment = sentiment_classes[lstm_sentiment_index]
 
-    # Save data to the database
-    save_to_database(text, lstm_sentiment, float(lstm_prediction[lstm_sentiment_index]))
+    # Save data to the database with the model_name 'lstm'
+    save_to_database(text, lstm_sentiment, float(lstm_prediction[lstm_sentiment_index]), 'lstm')
 
     return jsonify({'text': text,
                     'sentiment': lstm_sentiment,
                     'confidence': float(lstm_prediction[lstm_sentiment_index])
                     })
-
 
 
 @app.route('/api/predict-cnn', methods=['POST'])
@@ -127,14 +129,13 @@ def cnn_model():
     encoded_text = tf.keras.preprocessing.sequence.pad_sequences(
         encoded_text, padding='post', maxlen=50)
 
-
     # Perform prediction using the CNN model
     cnn_prediction = model_cnn.predict(encoded_text)[0]
     cnn_sentiment_index = tf.argmax(cnn_prediction).numpy()
     cnn_sentiment = sentiment_classes[cnn_sentiment_index]
 
-    # Save data to the database
-    save_to_database(text, cnn_sentiment, float(cnn_prediction[cnn_sentiment_index]))
+    # Save data to the database with the model_name 'cnn'
+    save_to_database(text, cnn_sentiment, float(cnn_prediction[cnn_sentiment_index]), 'cnn')
 
     return jsonify({'text': text,
                     'sentiment': cnn_sentiment,
