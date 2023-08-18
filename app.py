@@ -80,8 +80,6 @@ def preprocess_text(text):
     text = text.translate(str.maketrans('', '', string.punctuation))
     # Remove numbers
     text = re.sub(r'\d+', '', text)
-    # Remove whitespace
-    text = text.strip()
     # Add more preprocessing steps if needed
     text = re.sub(r'www.[^ ]+', '', text)
     text = re.sub(r'http[^ ]+', '', text)
@@ -90,6 +88,10 @@ def preprocess_text(text):
     text = re.sub(r'\b\w(1,2)\b', '', text)
     text = re.sub(r'\s\s+', ' ', text)
     text = re.sub(r'([#])|([^a-zA-Z])', ' ', text)
+    text = re.sub(r"[^a-zA-Z0-9]", " ", text)
+    # Remove whitespace
+    text = text.strip()
+    
     return text
 
 
