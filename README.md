@@ -1,7 +1,4 @@
-# skripsi-flask-chatgpt
-Skripsi Analisis Sentimen dengan topik ChatGPT menggunakan metode Deep Learning Framework Tensorflow 
-
-<h1 align="center">Awesome README Templates</h1>
+<h1 align="center">Skripsi Flask Chatgpt</h1>
 <p align="center"><i>A collection of awesome readme templates to display on your github profile.</i></p>
 <div align="center">
   <a href="https://github.com/elangosundar/awesome-README-templates/stargazers"><img src="https://img.shields.io/github/stars/elangosundar/awesome-README-templates" alt="Stars Badge"/></a>
@@ -22,32 +19,15 @@ If you like this Repo, Please click the :star:
 
 List of `awesome README Profile` categories mentioned below
 
-## Contents
-  - [Github README PROFILE CATEGORY](#github-readme-profile-category)
-  - [List out `Awesome README Profile` Tools](#list-out-awesome-readme-profile-tools)
-  - [List out `Awesome README Profile` Articles](#list-out-awesome-readme-profile-articles)
-  - [Contribute](#contribute)
-
 ## Website
 
-Link : https://awesome-github-readme-profile.netlify.app
+Link : -
 
+# Predict Result Score CNN
 <a href="emahkhujaemah.github.io"><img src="https://raw.githubusercontent.com/emahkhujaemah/skripsi-flask-chatgpt/main/images/predict-score-cnn.jpg" alt="Predict Result CNN" /></a>
 
-
-## Github README PROFILE CATEGORY
-
-- [ ] [Art](art)
-- [ ] [Code Styled](code-styled)
-- [ ] [Creativity](creativity)
-- [ ] [Flowcharts](flowcharts)
-- [ ] [Default](default)
-- [ ] [Dynamic Realtime](dynamic-realtime)
-- [ ] [Elaborate](elaborate)
-- [ ] [Multimedia](multimedia)
-- [ ] [Short-and-sweet](short-and-sweet)
-- [ ] [Tabular](tabular)
-- [ ] [Pie Charts](pie-charts)
+# Predict Result Score LSTM
+<a href="emahkhujaemah.github.io"><img src="https://raw.githubusercontent.com/emahkhujaemah/skripsi-flask-chatgpt/main/images/predict-score-lstm.jpg" alt="Predict Result LSTM" /></a>
 
 # List out `Awesome README Profile` Tools
 
